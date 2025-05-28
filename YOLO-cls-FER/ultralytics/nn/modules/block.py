@@ -31,7 +31,6 @@ __all__ = (
     "Proto",
     "RepC3",
     "ResNetLayer",
-    "RepNCSPELAN4",
     "ADown",
     "SPPELAN",
     "CBFuse",
@@ -39,7 +38,6 @@ __all__ = (
     "Silence",
     'C2f_RepCSP_2',
     'C2f_RepCSP_1',
-    'RepNCSPELAN41',
     'CAA',
     'PSA_CAA',
 )
@@ -83,8 +81,6 @@ class PSA_CAA(nn.Module):
 
 
 class C2f_RepCSP_2(nn.Module):
-    """CSP-ELAN."""
-
     def __init__(self, c1, c2, c3, c4, n=1):
         """Initializes CSP-ELAN layer with specified channel sizes, repetitions, and convolutions."""
         super().__init__()
@@ -93,7 +89,6 @@ class C2f_RepCSP_2(nn.Module):
         self.cv2 = RepCSP(c3 // 2, c4, n)
         self.cv3 = RepCSP(c4, c4, n)
         self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
-
 
     def forward(self, x):
         """Forward pass through RepNCSPELAN4 layer."""
@@ -109,10 +104,8 @@ class C2f_RepCSP_2(nn.Module):
 
 
 class C2f_RepCSP_1(nn.Module):
-    """CSP-ELAN."""
 
     def __init__(self, c1, c2, c3, c4, n=1):
-        """Initializes CSP-ELAN layer with specified channel sizes, repetitions, and convolutions."""
         super().__init__()
         self.c = c3 // 2
         self.cv1 = Conv(c1, c3, 1, 1)
@@ -121,13 +114,11 @@ class C2f_RepCSP_1(nn.Module):
 
 
     def forward(self, x):
-        """Forward pass through RepNCSPELAN4 layer."""
         y = list(self.cv1(x).chunk(2, 1))
         y.extend((m(y[-1])) for m in [self.cv2])
         return self.cv4(torch.cat(y, 1))
 
     def forward_split(self, x):
-        """Forward pass using split() instead of chunk()."""
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in [self.cv2])
         return self.cv4(torch.cat(y, 1))
@@ -670,54 +661,6 @@ class RepCSP(C3):
         c_ = int(c2 * e)  # hidden channels
         self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
 
-
-class RepNCSPELAN4(nn.Module):
-    """CSP-ELAN."""
-
-    def __init__(self, c1, c2, c3, c4, n=1):
-        """Initializes CSP-ELAN layer with specified channel sizes, repetitions, and convolutions."""
-        super().__init__()
-        self.c = c3 // 2
-        self.cv1 = Conv(c1, c3, 1, 1)
-        self.cv2 = RepCSP(c3 // 2, c4, n)
-        self.cv3 = RepCSP(c4, c4, n)
-        self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
-
-    def forward(self, x):
-        """Forward pass through RepNCSPELAN4 layer."""
-        y = list(self.cv1(x).chunk(2, 1))
-        y.extend((m(y[-1])) for m in [self.cv2, self.cv3])
-        return self.cv4(torch.cat(y, 1))
-
-    def forward_split(self, x):
-        """Forward pass using split() instead of chunk()."""
-        y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
-        return self.cv4(torch.cat(y, 1))
-
-class RepNCSPELAN41(nn.Module):
-    """CSP-ELAN."""
-
-    def __init__(self, c1, c2, c3, c4, n=1):
-        """Initializes CSP-ELAN layer with specified channel sizes, repetitions, and convolutions."""
-        super().__init__()
-        self.c = c3 // 2
-        self.cv1 = Conv(c1, c3, 1, 1)
-        self.cv2 = RepCSP(c3 // 2, c4, n)
-
-        self.cv4 = Conv(c3+c4, c2, 1, 1)
-
-    def forward(self, x):
-        """Forward pass through RepNCSPELAN4 layer."""
-        y = list(self.cv1(x).chunk(2, 1))
-        y.extend((m(y[-1])) for m in [self.cv2])
-        return self.cv4(torch.cat(y, 1))
-
-    def forward_split(self, x):
-        """Forward pass using split() instead of chunk()."""
-        y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in [self.cv2, self.cv3])
-        return self.cv4(torch.cat(y, 1))
 
 class ADown(nn.Module):
     """ADown."""
