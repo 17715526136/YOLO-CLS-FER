@@ -43,12 +43,10 @@ from .block import (
     ImagePoolingAttn,
     Proto,
     RepC3,
-    RepNCSPELAN4,
     ResNetLayer,
     Silence,
     C2f_RepCSP_2,
     C2f_RepCSP_1,
-    RepNCSPELAN41,
     CAA,
     PSA_CAA,
 )
