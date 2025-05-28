@@ -164,7 +164,6 @@ __all__ = (
     "ImagePoolingAttn",
     "ContrastiveHead",
     "BNContrastiveHead",
-    "RepNCSPELAN4",
     "ADown",
     "SPPELAN",
     "CBFuse",
